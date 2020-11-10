@@ -1,3 +1,44 @@
+/* Validation Interface*/
+interface Validatable {
+  value: string | number;
+  required?: boolean;
+  minLength?: number;
+  maxLength?: number;
+  min?: number;
+  max?: number;
+}
+
+/* Validation decorator */
+const Validate = (validatableInput: Validatable) => {
+  let isValid = true;
+  if (validatableInput.required) {
+    isValid = isValid && validatableInput.value.toString().trim().length !== 0;
+  }
+  /* != null checks for null and undefined */
+  if (
+    validatableInput.maxLength != null &&
+    typeof validatableInput.value === 'string'
+  ) {
+    isValid =
+      isValid && validatableInput.value.length <= validatableInput.maxLength;
+  }
+  if (
+    validatableInput.minLength != null &&
+    typeof validatableInput.value === 'string'
+  ) {
+    isValid =
+      isValid && validatableInput.value.length >= validatableInput.minLength;
+  }
+  if (validatableInput.max && typeof validatableInput.value === 'number') {
+    isValid = isValid && validatableInput.value <= validatableInput.max;
+  }
+  if (validatableInput.min && typeof validatableInput.value === 'number') {
+    isValid = isValid && validatableInput.value >= validatableInput.min;
+  }
+  return isValid;
+};
+
+/* Autobind decorator */
 const AutoBind = (_: any, __: string, descriptior: PropertyDescriptor) => {
   const originalMethod = descriptior.value;
   const adjustedDescriptor: PropertyDescriptor = {
@@ -37,9 +78,50 @@ class ProjectInput {
     this.attach();
   }
 
+  @AutoBind
   private submitHandler(e: Event): void {
     e.preventDefault();
-    console.log(this.title.value);
+    const userInput = this.getUserInputs();
+    if (Array.isArray(userInput)) {
+      console.log(userInput);
+    }
+    this.clearInputs();
+  }
+
+  private getUserInputs(): [string, string, number] | void {
+    const title: Validatable = {
+      value: this.title.value,
+      required: true,
+      minLength: 4,
+    };
+    const description: Validatable = {
+      value: this.description.value,
+      required: true,
+      minLength: 4,
+    };
+    const people: Validatable = {
+      value: +this.people.value,
+      required: true,
+      min: 1,
+      max: 5,
+    };
+
+    if (!Validate(title) || !Validate(description) || !Validate(people)) {
+      alert('Invalid input');
+      return;
+    } else {
+      return [
+        title.value.toString(),
+        this.description.value,
+        +this.people.value,
+      ];
+    }
+  }
+
+  private clearInputs(): void {
+    this.title.value = '';
+    this.description.value = '';
+    this.people.value = '';
   }
 
   /* Decorator ensures auto binding and avoids 'this.submitHandler.bind(this)' */
