@@ -9,7 +9,6 @@ interface Validatable {
 }
 
 /* Validation decorator */
-
 const Validate = (validatableInput: Validatable) => {
   let isValid = true;
   if (validatableInput.required) {
