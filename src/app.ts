@@ -14,6 +14,7 @@ const Validate = (validatableInput: Validatable) => {
   if (validatableInput.required) {
     isValid = isValid && validatableInput.value.toString().trim().length !== 0;
   }
+
   /* != null checks for null and undefined */
   if (
     validatableInput.maxLength != null &&
