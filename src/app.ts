@@ -7,7 +7,6 @@ interface Validatable {
   min?: number;
   max?: number;
 }
-
 /* Validation decorator */
 const Validate = (validatableInput: Validatable) => {
   let isValid = true;
