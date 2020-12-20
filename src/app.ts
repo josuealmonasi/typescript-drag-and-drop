@@ -74,6 +74,7 @@ class ProjectInput {
       '#description',
     ) as HTMLInputElement;
     this.people = this.el.querySelector('#people') as HTMLInputElement;
+    /* -------------------------------------------- */
     this.configure();
     this.attach();
   }
