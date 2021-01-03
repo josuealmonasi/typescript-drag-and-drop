@@ -1,7 +1,7 @@
 /* Validation Interface*/
 interface Validatable {
   value: string | number;
-  required?: boolean;
+  required?: boolean /* Using "| undefined" works as well instead of question mark */;
   minLength?: number;
   maxLength?: number;
   min?: number;
@@ -15,7 +15,7 @@ const Validate = (validatableInput: Validatable) => {
     isValid = isValid && validatableInput.value.toString().trim().length !== 0;
   }
 
-  /* != null checks for null and undefined */
+  /* "!= null"checks for null and undefined */
   if (
     validatableInput.maxLength != null &&
     typeof validatableInput.value === 'string'
@@ -30,16 +30,23 @@ const Validate = (validatableInput: Validatable) => {
     isValid =
       isValid && validatableInput.value.length >= validatableInput.minLength;
   }
-  if (validatableInput.max && typeof validatableInput.value === 'number') {
+  if (
+    validatableInput.max != null &&
+    typeof validatableInput.value === 'number'
+  ) {
     isValid = isValid && validatableInput.value <= validatableInput.max;
   }
-  if (validatableInput.min && typeof validatableInput.value === 'number') {
+  if (
+    validatableInput.min != null &&
+    typeof validatableInput.value === 'number'
+  ) {
     isValid = isValid && validatableInput.value >= validatableInput.min;
   }
   return isValid;
 };
 
 /* Autobind decorator */
+/* A decorator funciton takes target, methodName, descriptor */
 const AutoBind = (_: any, __: string, descriptior: PropertyDescriptor) => {
   const originalMethod = descriptior.value;
   const adjustedDescriptor: PropertyDescriptor = {
@@ -52,6 +59,39 @@ const AutoBind = (_: any, __: string, descriptior: PropertyDescriptor) => {
   return adjustedDescriptor;
 };
 
+/* ProjectList Class */
+class ProjectList {
+  templanteEl: HTMLTemplateElement;
+  rootEl: HTMLDivElement;
+  el: HTMLElement;
+
+  constructor(private type: 'active' | 'finished') {
+    this.templanteEl = document.querySelector(
+      '#project-list',
+    ) as HTMLTemplateElement;
+    this.rootEl = document.querySelector('#app') as HTMLDivElement;
+    const importNode = document.importNode(this.templanteEl.content, true);
+    this.el = importNode.firstElementChild as HTMLElement;
+    this.el.id = `${this.type}-projects`;
+    this.attach();
+    this.renderContent();
+  }
+
+  /* Rendering items on a list */
+  private renderContent(): void {
+    const listId = `${this.type}-projects-list`;
+    this.el.querySelector('ul')!.id = listId;
+    this.el.querySelector('h2')!.textContent =
+      this.type.toUpperCase() + ' PROJECTS';
+  }
+
+  /* Attaching form element to root element */
+  private attach(): void {
+    this.rootEl.insertAdjacentElement('beforeend', this.el);
+  }
+}
+
+/* ProjectInput Class */
 class ProjectInput {
   templanteEl: HTMLTemplateElement;
   rootEl: HTMLDivElement;
@@ -69,6 +109,7 @@ class ProjectInput {
     const importNode = document.importNode(this.templanteEl.content, true);
     this.el = importNode.firstElementChild as HTMLFormElement;
     this.el.id = 'user-input';
+
     /* Connecting HTML elements to class properties */
     this.title = this.el.querySelector('#title') as HTMLInputElement;
     this.description = this.el.querySelector(
@@ -138,3 +179,5 @@ class ProjectInput {
 }
 
 const i1 = new ProjectInput();
+const activeProjectList = new ProjectList('active');
+const finishedProjectList = new ProjectList('finished');
