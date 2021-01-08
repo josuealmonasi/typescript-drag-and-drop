@@ -52,6 +52,42 @@ const AutoBind = (_: any, __: string, descriptior: PropertyDescriptor) => {
   return adjustedDescriptor;
 };
 
+class ProjectState {
+  private listeners: any[] = [];
+  private projects: any[] = [];
+  private static _instance: ProjectState;
+
+  private constructor() {}
+
+  static getInstance(): ProjectState {
+    if (this._instance) {
+      return this._instance;
+    }
+    this._instance = new ProjectState();
+    return this._instance;
+  }
+
+  /* Adds listener function */
+  addListener(listenerFunction: Function): void {
+    this.listeners.push(listenerFunction);
+  }
+
+  addProject(title: string, description: string, numOfPeople: number): void {
+    const newProject = {
+      id: Math.random().toString,
+      title,
+      description,
+      people: numOfPeople,
+    };
+    this.projects.push(newProject);
+    for (const fn of this.listeners) {
+      fn(this.projects.slice());
+    }
+  }
+}
+
+const projectState = ProjectState.getInstance();
+
 class ProjectInput {
   templanteEl: HTMLTemplateElement;
   rootEl: HTMLDivElement;
@@ -85,6 +121,8 @@ class ProjectInput {
     const userInput = this.getUserInputs();
     if (Array.isArray(userInput)) {
       console.log(userInput);
+      const [title, desc, people] = userInput;
+      projectState.addProject(title, desc, people);
     }
     this.clearInputs();
   }
