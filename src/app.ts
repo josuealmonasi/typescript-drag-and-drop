@@ -100,8 +100,10 @@ class ProjectList {
   templanteEl: HTMLTemplateElement;
   rootEl: HTMLDivElement;
   el: HTMLElement;
+  assignedProjects: any[];
 
   constructor(private type: 'active' | 'finished') {
+    this.assignedProjects = [];
     this.templanteEl = document.querySelector(
       '#project-list',
     ) as HTMLTemplateElement;
@@ -109,8 +111,24 @@ class ProjectList {
     const importNode = document.importNode(this.templanteEl.content, true);
     this.el = importNode.firstElementChild as HTMLElement;
     this.el.id = `${this.type}-projects`;
+    projectState.addListener((proj: any[]) => {
+      this.assignedProjects = proj;
+      this.renderProjects();
+    });
     this.attach();
     this.renderContent();
+  }
+
+  /* Render Projects */
+  private renderProjects(): void {
+    const listEl = document.getElementById(
+      `${this.type}-projects-list`,
+    )! as HTMLUListElement;
+    for (const proj of this.assignedProjects) {
+      const listItem = document.createElement('li');
+      listItem.textContent = proj.title;
+      listEl.appendChild(listItem);
+    }
   }
 
   /* Rendering items on a list */
