@@ -59,9 +59,26 @@ const AutoBind = (_: any, __: string, descriptior: PropertyDescriptor) => {
   return adjustedDescriptor;
 };
 
+type Listener = (items: Project[]) => void;
+
+enum ProjectStatus {
+  Active,
+  Finished,
+}
+
+class Project {
+  constructor(
+    public id: string,
+    public title: string,
+    public description: string,
+    public people: number,
+    public status: ProjectStatus,
+  ) {}
+}
+
 class ProjectState {
-  private listeners: any[] = [];
-  private projects: any[] = [];
+  private listeners: Listener[] = [];
+  private projects: Project[] = [];
   private static _instance: ProjectState;
 
   private constructor() {}
@@ -75,17 +92,18 @@ class ProjectState {
   }
 
   /* Adds listener function */
-  addListener(listenerFunction: Function): void {
+  addListener(listenerFunction: Listener): void {
     this.listeners.push(listenerFunction);
   }
 
   addProject(title: string, description: string, numOfPeople: number): void {
-    const newProject = {
-      id: Math.random().toString,
+    const newProject = new Project(
+      Math.random().toString(),
       title,
       description,
-      people: numOfPeople,
-    };
+      numOfPeople,
+      ProjectStatus.Active,
+    );
     this.projects.push(newProject);
     for (const fn of this.listeners) {
       fn(this.projects.slice());
@@ -100,7 +118,7 @@ class ProjectList {
   templanteEl: HTMLTemplateElement;
   rootEl: HTMLDivElement;
   el: HTMLElement;
-  assignedProjects: any[];
+  assignedProjects: Project[];
 
   constructor(private type: 'active' | 'finished') {
     this.assignedProjects = [];
@@ -111,7 +129,7 @@ class ProjectList {
     const importNode = document.importNode(this.templanteEl.content, true);
     this.el = importNode.firstElementChild as HTMLElement;
     this.el.id = `${this.type}-projects`;
-    projectState.addListener((proj: any[]) => {
+    projectState.addListener((proj: Project[]) => {
       this.assignedProjects = proj;
       this.renderProjects();
     });
